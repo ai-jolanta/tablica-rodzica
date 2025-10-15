@@ -25,291 +25,603 @@
         .hidden {
             display: none;
         }
-        
-        .install-prompt {
+
+        .modal {
             position: fixed;
-            bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, #9333ea 0%, #ec4899 100%);
-            color: white;
-            padding: 1rem 1.5rem;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 1rem;
+        }
+
+        .modal-content {
+            background: white;
             border-radius: 1rem;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-            z-index: 1000;
-            max-width: 90%;
+            padding: 2rem;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .week-nav {
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+            padding: 0.5rem 0;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .week-nav::-webkit-scrollbar {
             display: none;
-        }
-        
-        .install-prompt.show {
-            display: block;
-            animation: slideUp 0.3s ease-out;
-        }
-        
-        @keyframes slideUp {
-            from {
-                transform: translateX(-50%) translateY(100px);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(-50%) translateY(0);
-                opacity: 1;
-            }
         }
     </style>
 </head>
 <body>
-    <div class="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 pb-24">
-        <!-- Header -->
-        <div class="sticky top-0 z-50 bg-white shadow-lg">
-            <div class="max-w-4xl mx-auto p-4">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h1 class="text-2xl md:text-3xl font-bold text-purple-800">📅 TabliCa</h1>
-                        <p class="text-xs md:text-sm text-gray-600">Wszystko w jednym miejscu</p>
-                    </div>
-                    <div class="text-right">
-                        <div class="text-xs text-gray-500">Nieprzeczytane</div>
-                        <div id="unreadCount" class="text-2xl md:text-3xl font-bold text-purple-600">0</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="max-w-4xl mx-auto p-4">
-            <!-- Search and Filter -->
-            <div class="bg-white rounded-xl shadow-lg p-4 mb-4">
-                <div class="space-y-3">
-                    <div class="relative">
-                        <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">🔍</span>
-                        <input
-                            type="text"
-                            id="searchInput"
-                            placeholder="Szukaj..."
-                            class="w-full pl-11 pr-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        />
-                    </div>
-                    
-                    <select
-                        id="filterCategory"
-                        class="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    >
-                        <option value="Wszystkie">Wszystkie</option>
-                        <option value="Szkoła">Szkoła</option>
-                        <option value="Zuchy">Zuchy</option>
-                        <option value="Sport">Sport</option>
-                        <option value="Korepetycje">Korepetycje</option>
-                        <option value="Inne">Inne</option>
-                    </select>
-                </div>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="min-h-screen bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-purple-800 mb-2">📅 TabliCa</h1>
+                <p class="text-gray-600">Wspólna tablica rodziny</p>
             </div>
 
-            <!-- AI Express Form -->
-            <div id="aiExpressForm" class="bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl shadow-lg p-5 mb-4 hidden">
-                <div class="flex items-center gap-2 mb-3">
-                    <span class="text-2xl">⚡</span>
-                    <h2 class="text-xl font-bold text-white">AI Express</h2>
-                </div>
-                <p class="text-white text-sm mb-4">Skopiuj wiadomość i wklej tutaj - automatycznie wypełnię pola!</p>
-                
-                <textarea
-                    id="aiTextInput"
-                    class="w-full px-4 py-3 border-2 border-white rounded-xl focus:ring-2 focus:ring-yellow-300 text-lg mb-3"
-                    rows="4"
-                    placeholder="Przykład: Jutro wycieczka do muzeum, wpłata 30 zł do piątku - pani Ania z Messengera"
-                ></textarea>
-                
-                <div class="flex gap-3">
-                    <button
-                        onclick="parseWithAI()"
-                        class="flex-1 bg-yellow-400 hover:bg-yellow-500 text-purple-900 font-bold py-3 px-4 rounded-xl transition-colors text-lg"
-                    >
-                        ⚡ Wypełnij automatycznie
-                    </button>
-                    <button
-                        onclick="closeAiExpress()"
-                        class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-bold py-3 px-4 rounded-xl transition-colors"
-                    >
-                        ✕
-                    </button>
-                </div>
-            </div>
-
-            <!-- Add Form -->
-            <div id="addForm" class="bg-white rounded-xl shadow-lg p-5 mb-4 hidden">
-                <h2 class="text-xl font-bold text-gray-800 mb-4">Nowe ogłoszenie</h2>
-                
+            <div id="loginForm">
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Tytuł *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
                         <input
-                            type="text"
-                            id="titleInput"
-                            class="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
-                            placeholder="np. Wycieczka do zoo"
+                            type="email"
+                            id="loginEmail"
+                            class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            placeholder="twoj@email.com"
                         />
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Opis</label>
-                        <textarea
-                            id="descriptionInput"
-                            class="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
-                            rows="3"
-                            placeholder="Szczegóły..."
-                        ></textarea>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Data *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Hasło</label>
                         <input
-                            type="date"
-                            id="dateInput"
-                            class="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
+                            type="password"
+                            id="loginPassword"
+                            class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            placeholder="••••••••"
                         />
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Kategoria</label>
-                        <select
-                            id="categoryInput"
-                            class="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
-                        >
-                            <option value="Szkoła">Szkoła</option>
-                            <option value="Zuchy">Zuchy</option>
-                            <option value="Sport">Sport</option>
-                            <option value="Korepetycje">Korepetycje</option>
-                            <option value="Inne">Inne</option>
-                        </select>
-                    </div>
+                    <button
+                        onclick="login()"
+                        class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-xl transition-colors"
+                    >
+                        🔐 Zaloguj się
+                    </button>
 
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Priorytet</label>
-                        <select
-                            id="priorityInput"
-                            class="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
-                        >
-                            <option value="normal">Normalne</option>
-                            <option value="high">🔥 Pilne</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Źródło</label>
-                        <input
-                            type="text"
-                            id="sourceInput"
-                            class="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
-                            placeholder="np. Messenger - pani Ania"
-                        />
-                    </div>
-
-                    <div class="flex gap-3">
-                        <button
-                            onclick="addAnnouncement()"
-                            class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-4 rounded-xl transition-colors text-lg"
-                        >
-                            Dodaj
-                        </button>
-                        <button
-                            onclick="closeAddForm()"
-                            class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-4 px-4 rounded-xl transition-colors text-lg"
-                        >
-                            Anuluj
-                        </button>
+                    <div id="loginError" class="hidden bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded">
+                        <p class="font-bold">Błąd logowania</p>
+                        <p id="loginErrorMessage"></p>
                     </div>
                 </div>
             </div>
-
-            <!-- Announcements List -->
-            <div id="announcementsList" class="space-y-4"></div>
-
-            <!-- Summary -->
-            <div class="mt-6 bg-white rounded-xl shadow-lg p-4">
-                <p id="summary" class="text-center text-gray-600 text-sm md:text-base"></p>
-            </div>
-        </div>
-
-        <!-- Floating Action Buttons -->
-        <div class="fixed bottom-6 right-6 flex flex-col gap-3 z-40">
-            <button
-                onclick="openAiExpress()"
-                class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold p-4 rounded-full shadow-2xl transition-all active:scale-95"
-                title="AI Express"
-            >
-                <span class="text-2xl">⚡</span>
-            </button>
-
-            <button
-                onclick="openAddForm()"
-                class="bg-purple-600 hover:bg-purple-700 text-white font-bold p-4 rounded-full shadow-2xl transition-all active:scale-95"
-                title="Dodaj ręcznie"
-            >
-                <span class="text-2xl">➕</span>
-            </button>
         </div>
     </div>
 
-    <script>
-        // Stan aplikacji
-        let announcements = [];
+    <!-- Main App (hidden until logged in) -->
+    <div id="mainApp" class="hidden">
+        <!-- Room Setup Modal -->
+        <div id="roomSetupModal" class="modal hidden">
+            <div class="modal-content">
+                <h2 class="text-2xl font-bold text-purple-800 mb-4">👋 Witaj w TabliCy!</h2>
+                <p class="text-gray-600 mb-6">Wybierz jak chcesz korzystać z aplikacji:</p>
+                
+                <div class="space-y-4">
+                    <button onclick="createNewRoom()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-6 rounded-xl transition-colors text-left">
+                        <div class="text-lg mb-1">🆕 Utwórz nową wspólną tablicę</div>
+                        <div class="text-sm opacity-90">Dostaniesz link do udostępnienia</div>
+                    </button>
 
-        // Inicjalizacja
-        function init() {
-            loadAnnouncements();
-            setDateInputToToday();
-            renderAnnouncements();
-            updateSummary();
+                    <div class="text-center text-gray-500 font-bold">LUB</div>
+
+                    <div class="bg-gray-50 p-4 rounded-xl">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Kod rodziny:</label>
+                        <input
+                            type="text"
+                            id="roomCodeInput"
+                            placeholder="np. kowalskich2025"
+                            class="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 mb-3"
+                        />
+                        <button onclick="joinRoom()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl transition-colors">
+                            ✅ Dołącz do wspólnej tablicy
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Share Link Modal -->
+        <div id="shareLinkModal" class="modal hidden">
+            <div class="modal-content">
+                <h2 class="text-2xl font-bold text-purple-800 mb-4">🎉 Gotowe!</h2>
+                <p class="text-gray-600 mb-4">Twoja wspólna tablica została utworzona!</p>
+                
+                <div class="bg-purple-50 p-4 rounded-xl mb-4">
+                    <p class="text-sm font-medium text-gray-700 mb-2">Kod rodziny:</p>
+                    <div class="bg-white p-3 rounded-lg font-mono text-lg font-bold text-purple-600 break-all" id="displayRoomCode"></div>
+                </div>
+
+                <div class="bg-blue-50 p-4 rounded-xl mb-4">
+                    <p class="text-sm font-medium text-gray-700 mb-2">Link do udostępnienia:</p>
+                    <div class="bg-white p-3 rounded-lg text-sm text-blue-600 break-all" id="displayShareLink"></div>
+                </div>
+
+                <button onclick="copyShareLink()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-xl transition-colors mb-3">
+                    📋 Skopiuj link
+                </button>
+
+                <button onclick="closeShareModal()" class="w-full bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-4 rounded-xl transition-colors">
+                    Zamknij
+                </button>
+
+                <p class="text-sm text-gray-500 mt-4">💡 Wyślij ten link drugiej osobie!</p>
+            </div>
+        </div>
+
+        <div class="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 pb-24">
+            <!-- Header -->
+            <div class="sticky top-0 z-50 bg-white shadow-lg">
+                <div class="max-w-4xl mx-auto p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex-1">
+                            <h1 class="text-2xl md:text-3xl font-bold text-purple-800">📅 TabliCa</h1>
+                            <p class="text-xs md:text-sm text-gray-600">Wspólna tablica rodziny</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xs text-gray-500">Nieprzeczytane</div>
+                            <div id="unreadCount" class="text-2xl md:text-3xl font-bold text-purple-600">0</div>
+                        </div>
+                        <button onclick="showShareInfo()" class="ml-3 bg-purple-100 hover:bg-purple-200 text-purple-600 p-2 rounded-lg transition-colors">
+                            <span class="text-xl">👥</span>
+                        </button>
+                        <button onclick="logout()" class="ml-2 bg-red-100 hover:bg-red-200 text-red-600 p-2 rounded-lg transition-colors" title="Wyloguj">
+                            <span class="text-xl">🚪</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Week Navigation -->
+                    <div class="week-nav">
+                        <button onclick="changeWeek(-1)" class="bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded-lg font-bold text-gray-700 whitespace-nowrap">
+                            ← Poprzedni
+                        </button>
+                        <button onclick="changeWeek(0)" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-bold whitespace-nowrap">
+                            Ten tydzień
+                        </button>
+                        <button onclick="changeWeek(1)" class="bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded-lg font-bold text-gray-700 whitespace-nowrap">
+                            Następny →
+                        </button>
+                    </div>
+                    
+                    <div id="weekDisplay" class="text-center text-sm text-gray-600 mt-2"></div>
+                    <div id="syncStatus" class="text-xs text-center mt-1 text-gray-500"></div>
+                </div>
+            </div>
+
+            <div class="max-w-4xl mx-auto p-4">
+                <!-- Search and Filter -->
+                <div class="bg-white rounded-xl shadow-lg p-4 mb-4">
+                    <div class="space-y-3">
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">🔍</span>
+                            <input
+                                type="text"
+                                id="searchInput"
+                                placeholder="Szukaj..."
+                                class="w-full pl-11 pr-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            />
+                        </div>
+                        
+                        <select
+                            id="filterCategory"
+                            class="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        >
+                            <option value="Wszystkie">Wszystkie kategorie</option>
+                            <option value="Teddy Eddie">🧸 Teddy Eddie</option>
+                            <option value="Programowanie">💻 Programowanie</option>
+                            <option value="Szkoła">📚 Szkoła</option>
+                            <option value="Wycieczki">🚌 Wycieczki</option>
+                            <option value="Składki">💰 Składki</option>
+                            <option value="Inne">📌 Inne</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- AI Express Form -->
+                <div id="aiExpressForm" class="bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl shadow-lg p-5 mb-4 hidden">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="text-2xl">⚡</span>
+                        <h2 class="text-xl font-bold text-white">AI Express</h2>
+                    </div>
+                    <p class="text-white text-sm mb-4">Skopiuj wiadomość i wklej tutaj!</p>
+                    
+                    <textarea
+                        id="aiTextInput"
+                        class="w-full px-4 py-3 border-2 border-white rounded-xl focus:ring-2 focus:ring-yellow-300 text-lg mb-3"
+                        rows="4"
+                        placeholder="Przykład: Jutro zajęcia programowania, laptop"
+                    ></textarea>
+                    
+                    <div class="flex gap-3">
+                        <button
+                            onclick="parseWithAI()"
+                            class="flex-1 bg-yellow-400 hover:bg-yellow-500 text-purple-900 font-bold py-3 px-4 rounded-xl transition-colors text-lg"
+                        >
+                            ⚡ Wypełnij automatycznie
+                        </button>
+                        <button
+                            onclick="closeAiExpress()"
+                            class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-bold py-3 px-4 rounded-xl transition-colors"
+                        >
+                            ✕
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Add Form -->
+                <div id="addForm" class="bg-white rounded-xl shadow-lg p-5 mb-4 hidden">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">Nowe ogłoszenie</h2>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Tytuł *</label>
+                            <input
+                                type="text"
+                                id="titleInput"
+                                class="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
+                                placeholder="np. Zajęcia programowania"
+                            />
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Opis</label>
+                            <textarea
+                                id="descriptionInput"
+                                class="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
+                                rows="3"
+                                placeholder="Szczegóły..."
+                            ></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Data *</label>
+                            <input
+                                type="date"
+                                id="dateInput"
+                                class="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
+                            />
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Kategoria</label>
+                            <select
+                                id="categoryInput"
+                                class="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
+                            >
+                                <option value="Teddy Eddie">🧸 Teddy Eddie</option>
+                                <option value="Programowanie">💻 Programowanie</option>
+                                <option value="Szkoła">📚 Szkoła</option>
+                                <option value="Wycieczki">🚌 Wycieczki</option>
+                                <option value="Składki">💰 Składki</option>
+                                <option value="Inne">📌 Inne</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Priorytet</label>
+                            <select
+                                id="priorityInput"
+                                class="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
+                            >
+                                <option value="normal">Normalne</option>
+                                <option value="high">🔥 Pilne</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Źródło</label>
+                            <input
+                                type="text"
+                                id="sourceInput"
+                                class="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
+                                placeholder="np. Messenger - pani Ania"
+                            />
+                        </div>
+
+                        <div class="flex gap-3">
+                            <button
+                                onclick="addAnnouncement()"
+                                class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-4 rounded-xl transition-colors text-lg"
+                            >
+                                Dodaj
+                            </button>
+                            <button
+                                onclick="closeAddForm()"
+                                class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-4 px-4 rounded-xl transition-colors text-lg"
+                            >
+                                Anuluj
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Announcements List -->
+                <div id="announcementsList" class="space-y-4"></div>
+
+                <!-- Summary -->
+                <div class="mt-6 bg-white rounded-xl shadow-lg p-4">
+                    <p id="summary" class="text-center text-gray-600 text-sm md:text-base"></p>
+                </div>
+            </div>
+
+            <!-- Floating Action Buttons -->
+            <div class="fixed bottom-6 right-6 flex flex-col gap-3 z-40">
+                <button
+                    onclick="openAiExpress()"
+                    class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold p-4 rounded-full shadow-2xl transition-all active:scale-95"
+                    title="AI Express"
+                >
+                    <span class="text-2xl">⚡</span>
+                </button>
+
+                <button
+                    onclick="openAddForm()"
+                    class="bg-purple-600 hover:bg-purple-700 text-white font-bold p-4 rounded-full shadow-2xl transition-all active:scale-95"
+                    title="Dodaj ręcznie"
+                >
+                    <span class="text-2xl">➕</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+    <script>
+  
+       // 🔥🔥🔥 WKLEJ TUTAJ SWOJĄ KONFIGURACJĘ FIREBASE 🔥🔥🔥
+const firebaseConfig = {
+    apiKey: "AIzaSyBTs9TkU0KwOiAPdhBJs8mQe6fSrClhOuM",
+    authDomain: "tablica-rodzica.firebaseapp.com",
+    databaseURL: "https://tablica-rodzica-default-rtdb.firebaseio.com",
+    projectId: "tablica-rodzica",
+    storageBucket: "tablica-rodzica.firebasestorage.app",
+    messagingSenderId: "616878397001",
+    appId: "1:616878397001:web:d7cbae0cbf403a9bbd1198"
+};
+// 🔥🔥🔥 KONIEC KONFIGURACJI 🔥🔥🔥
+     
+
+        let db;
+        let auth;
+        let currentUser = null;
+        let currentRoom = null;
+        let announcements = [];
+        let currentWeekOffset = 0;
+
+        // Inicjalizacja Firebase
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.database();
+        auth = firebase.auth();
+
+        // Sprawdź stan logowania
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+                checkRoomStatus();
+            } else {
+                document.getElementById('loginScreen').classList.remove('hidden');
+                document.getElementById('mainApp').classList.add('hidden');
+            }
+        });
+
+        // Logowanie
+        function login() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+
+            if (!email || !password) {
+                showLoginError('Wypełnij email i hasło!');
+                return;
+            }
+
+            auth.signInWithEmailAndPassword(email, password)
+                .then(() => {
+                    console.log('Zalogowano!');
+                })
+                .catch((error) => {
+                    console.error('Błąd logowania:', error);
+                    let message = 'Nieprawidłowy email lub hasło';
+                    if (error.code === 'auth/user-not-found') {
+                        message = 'Nie znaleziono użytkownika. Skontaktuj się z administratorem.';
+                    } else if (error.code === 'auth/wrong-password') {
+                        message = 'Nieprawidłowe hasło';
+                    } else if (error.code === 'auth/invalid-email') {
+                        message = 'Nieprawidłowy format email';
+                    }
+                    showLoginError(message);
+                });
+        }
+
+        // Wylogowanie
+        function logout() {
+            if (confirm('Czy na pewno chcesz się wylogować?')) {
+                auth.signOut();
+            }
+        }
+
+        function showLoginError(message) {
+            document.getElementById('loginError').classList.remove('hidden');
+            document.getElementById('loginErrorMessage').textContent = message;
+            setTimeout(() => {
+                document.getElementById('loginError').classList.add('hidden');
+            }, 5000);
+        }
+
+        // Enter w polu hasła = login
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('loginPassword')?.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') login();
+            });
+        });
+
+        function updateSyncStatus(message) {
+            document.getElementById('syncStatus').textContent = message;
+        }
+
+        function checkRoomStatus() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const roomFromUrl = urlParams.get('room');
+            const savedRoom = localStorage.getItem('currentRoom');
+
+            if (roomFromUrl) {
+                currentRoom = roomFromUrl;
+                localStorage.setItem('currentRoom', currentRoom);
+                initRoom();
+            } else if (savedRoom) {
+                currentRoom = savedRoom;
+                initRoom();
+            } else {
+                showRoomSetupModal();
+            }
+        }
+
+        function showRoomSetupModal() {
+            document.getElementById('roomSetupModal').classList.remove('hidden');
+        }
+
+        function createNewRoom() {
+            currentRoom = 'room_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('currentRoom', currentRoom);
+            document.getElementById('roomSetupModal').classList.add('hidden');
             
-            // Event listeners
+            const shareLink = window.location.origin + window.location.pathname + '?room=' + currentRoom;
+            document.getElementById('displayRoomCode').textContent = currentRoom;
+            document.getElementById('displayShareLink').textContent = shareLink;
+            document.getElementById('shareLinkModal').classList.remove('hidden');
+            
+            initRoom();
+        }
+
+        function joinRoom() {
+            const input = document.getElementById('roomCodeInput').value.trim();
+            if (!input) {
+                alert('Wpisz kod rodziny!');
+                return;
+            }
+
+            if (input.includes('?room=')) {
+                const urlParams = new URLSearchParams(input.split('?')[1]);
+                currentRoom = urlParams.get('room');
+            } else if (input.includes('room_')) {
+                currentRoom = input;
+            } else {
+                currentRoom = 'room_' + input;
+            }
+
+            localStorage.setItem('currentRoom', currentRoom);
+            document.getElementById('roomSetupModal').classList.add('hidden');
+            initRoom();
+        }
+
+        function showShareInfo() {
+            const shareLink = window.location.origin + window.location.pathname + '?room=' + currentRoom;
+            document.getElementById('displayRoomCode').textContent = currentRoom;
+            document.getElementById('displayShareLink').textContent = shareLink;
+            document.getElementById('shareLinkModal').classList.remove('hidden');
+        }
+
+        function closeShareModal() {
+            document.getElementById('shareLinkModal').classList.add('hidden');
+        }
+
+        function copyShareLink() {
+            const shareLink = window.location.origin + window.location.pathname + '?room=' + currentRoom;
+            navigator.clipboard.writeText(shareLink).then(() => {
+                alert('Link skopiowany! 📱');
+            });
+        }
+
+        function initRoom() {
+            if (!currentRoom || !db) return;
+
+            const roomRef = db.ref('rooms/' + currentRoom + '/announcements');
+            
+            roomRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                announcements = data ? Object.keys(data).map(key => ({
+                    id: key,
+                    ...data[key]
+                })) : [];
+                renderAnnouncements();
+                updateSyncStatus('🟢 Synchronizacja aktywna');
+            });
+
+            setupEventListeners();
+        }
+
+        function setupEventListeners() {
+            setDateInputToToday();
+            updateWeekDisplay();
             document.getElementById('searchInput').addEventListener('input', renderAnnouncements);
             document.getElementById('filterCategory').addEventListener('change', renderAnnouncements);
         }
 
-        // Załaduj ogłoszenia z localStorage
-        function loadAnnouncements() {
-            const saved = localStorage.getItem('announcements');
-            if (saved) {
-                announcements = JSON.parse(saved);
-            } else {
-                // Przykładowe dane
-                announcements = [
-                    {
-                        id: 1,
-                        title: 'Wycieczka do muzeum',
-                        description: 'Proszę o wpłatę 30 zł do piątku. Dzieci mają mieć drugie śniadanie.',
-                        date: '2025-10-17',
-                        category: 'Szkoła',
-                        priority: 'high',
-                        read: false,
-                        source: 'Wychowawczyni - Messenger'
-                    },
-                    {
-                        id: 2,
-                        title: 'Zbiórka zuchów',
-                        description: 'W sobotę zbiórka o 10:00 w sali gimnastycznej. Mundurki!',
-                        date: '2025-10-18',
-                        category: 'Zuchy',
-                        priority: 'normal',
-                        read: false,
-                        source: 'Grupa FB Zuchy'
-                    }
-                ];
-                saveAnnouncements();
-            }
-        }
-
-        // Zapisz ogłoszenia do localStorage
-        function saveAnnouncements() {
-            localStorage.setItem('announcements', JSON.stringify(announcements));
-        }
-
-        // Ustaw dzisiejszą datę
         function setDateInputToToday() {
             document.getElementById('dateInput').value = new Date().toISOString().split('T')[0];
         }
 
-        // Formatuj datę
+        function getWeekRange(offset) {
+            const today = new Date();
+            const currentDay = today.getDay() || 7;
+            const monday = new Date(today);
+            monday.setDate(today.getDate() - currentDay + 1 + (offset * 7));
+            const sunday = new Date(monday);
+            sunday.setDate(monday.getDate() + 6);
+            return { start: monday, end: sunday };
+        }
+
+        function changeWeek(offset) {
+            currentWeekOffset = offset;
+            updateWeekDisplay();
+            renderAnnouncements();
+        }
+
+        function updateWeekDisplay() {
+            const { start, end } = getWeekRange(currentWeekOffset);
+            const formatDate = (d) => `${d.getDate()}.${d.getMonth() + 1}`;
+            let weekText = `${formatDate(start)} - ${formatDate(end)}`;
+            
+            if (currentWeekOffset === 0) weekText = '📅 Ten tydzień (' + weekText + ')';
+            else if (currentWeekOffset === -1) weekText = '⬅️ Poprzedni tydzień (' + weekText + ')';
+            else if (currentWeekOffset === 1) weekText = '➡️ Następny tydzień (' + weekText + ')';
+            else weekText = '📆 Tydzień ' + weekText;
+            
+            document.getElementById('weekDisplay').textContent = weekText;
+        }
+
+        function isInWeek(dateString, weekOffset) {
+            const date = new Date(dateString);
+            const { start, end } = getWeekRange(weekOffset);
+            return date >= start && date <= end;
+        }
+
         function formatDate(dateString) {
             const date = new Date(dateString);
             const today = new Date();
@@ -323,16 +635,18 @@
             return `${days[date.getDay()]} ${date.getDate()}.${date.getMonth() + 1}`;
         }
 
-        // Sprawdź czy data jest w tym tygodniu
-        function isThisWeek(dateString) {
-            const date = new Date(dateString);
-            const today = new Date();
-            const weekFromNow = new Date(today);
-            weekFromNow.setDate(weekFromNow.getDate() + 7);
-            return date >= today && date <= weekFromNow;
+        function getCategoryEmoji(category) {
+            const emojis = {
+                'Teddy Eddie': '🧸',
+                'Programowanie': '💻',
+                'Szkoła': '📚',
+                'Wycieczki': '🚌',
+                'Składki': '💰',
+                'Inne': '📌'
+            };
+            return emojis[category] || '📌';
         }
 
-        // Renderuj ogłoszenia
         function renderAnnouncements() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const filterCategory = document.getElementById('filterCategory').value;
@@ -341,7 +655,8 @@
                 const matchesSearch = a.title.toLowerCase().includes(searchTerm) ||
                                     a.description.toLowerCase().includes(searchTerm);
                 const matchesCategory = filterCategory === 'Wszystkie' || a.category === filterCategory;
-                return matchesSearch && matchesCategory;
+                const matchesWeek = isInWeek(a.date, currentWeekOffset);
+                return matchesSearch && matchesCategory && matchesWeek;
             }).sort((a, b) => {
                 if (a.priority === 'high' && b.priority !== 'high') return -1;
                 if (b.priority === 'high' && a.priority !== 'high') return 1;
@@ -351,7 +666,7 @@
             const list = document.getElementById('announcementsList');
             
             if (filtered.length === 0) {
-                list.innerHTML = '<div class="bg-white rounded-xl shadow-lg p-8 text-center"><p class="text-gray-500 text-lg">Brak ogłoszeń do wyświetlenia</p></div>';
+                list.innerHTML = '<div class="bg-white rounded-xl shadow-lg p-8 text-center"><p class="text-gray-500 text-lg">Brak ogłoszeń w tym tygodniu</p></div>';
             } else {
                 list.innerHTML = filtered.map(a => `
                     <div class="bg-white rounded-xl shadow-lg p-5 transition-all active:scale-98 ${a.read ? 'opacity-60' : ''} ${a.priority === 'high' ? 'border-l-4 border-red-500' : 'border-l-4 border-purple-300'}">
@@ -359,7 +674,9 @@
                             <div class="flex-1 min-w-0">
                                 <div class="flex flex-wrap items-center gap-2 mb-3">
                                     <span class="font-bold text-base md:text-lg text-purple-900 whitespace-nowrap">${formatDate(a.date)}</span>
-                                    <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">${a.category}</span>
+                                    <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
+                                        ${getCategoryEmoji(a.category)} ${a.category}
+                                    </span>
                                     ${a.priority === 'high' ? '<span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">🔥 PILNE</span>' : ''}
                                 </div>
                                 <h3 class="text-lg md:text-xl font-bold text-gray-800 mb-2 break-words">${a.title}</h3>
@@ -368,13 +685,13 @@
                             </div>
                             <div class="flex flex-col gap-2 flex-shrink-0">
                                 <button
-                                    onclick="toggleRead(${a.id})"
+                                    onclick="toggleRead('${a.id}')"
                                     class="p-3 rounded-xl transition-colors ${a.read ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'}"
                                 >
                                     <span class="text-xl">${a.read ? '✅' : '⭕'}</span>
                                 </button>
                                 <button
-                                    onclick="deleteAnnouncement(${a.id})"
+                                    onclick="deleteAnnouncement('${a.id}')"
                                     class="p-3 rounded-xl bg-red-100 text-red-600 transition-colors"
                                 >
                                     <span class="text-xl">✕</span>
@@ -388,62 +705,45 @@
             updateSummary();
         }
 
-        // Aktualizuj podsumowanie
         function updateSummary() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const filterCategory = document.getElementById('filterCategory').value;
+            const thisWeek = announcements.filter(a => isInWeek(a.date, currentWeekOffset));
+            const unread = thisWeek.filter(a => !a.read).length;
             
-            const filtered = announcements.filter(a => {
-                const matchesSearch = a.title.toLowerCase().includes(searchTerm) ||
-                                    a.description.toLowerCase().includes(searchTerm);
-                const matchesCategory = filterCategory === 'Wszystkie' || a.category === filterCategory;
-                return matchesSearch && matchesCategory;
-            });
-
-            const thisWeek = filtered.filter(a => isThisWeek(a.date));
-            const unread = announcements.filter(a => !a.read && isThisWeek(a.date)).length;
-
             document.getElementById('unreadCount').textContent = unread;
             
-            let summaryText = `<span class="font-bold text-purple-600">${filtered.length}</span> ogłoszeń`;
-            if (thisWeek.length > 0) {
-                summaryText += ` | <span class="font-bold text-purple-600">${thisWeek.length}</span> w tym tygodniu`;
-            }
+            let summaryText = `<span class="font-bold text-purple-600">${thisWeek.length}</span> ogłoszeń w tym tygodniu`;
             document.getElementById('summary').innerHTML = summaryText;
         }
 
-        // Toggle read status
         function toggleRead(id) {
-            const announcement = announcements.find(a => a.id === id);
-            if (announcement) {
-                announcement.read = !announcement.read;
-                saveAnnouncements();
-                renderAnnouncements();
+            if (db && currentRoom) {
+                const announcement = announcements.find(a => a.id === id);
+                if (announcement) {
+                    db.ref('rooms/' + currentRoom + '/announcements/' + id).update({
+                        read: !announcement.read
+                    });
+                }
             }
         }
 
-        // Usuń ogłoszenie
         function deleteAnnouncement(id) {
-            if (confirm('Usunąć to ogłoszenie?')) {
-                announcements = announcements.filter(a => a.id !== id);
-                saveAnnouncements();
-                renderAnnouncements();
+            if (!confirm('Usunąć to ogłoszenie?')) return;
+            
+            if (db && currentRoom) {
+                db.ref('rooms/' + currentRoom + '/announcements/' + id).remove();
             }
         }
 
-        // Otwórz AI Express
         function openAiExpress() {
             document.getElementById('aiExpressForm').classList.remove('hidden');
             document.getElementById('addForm').classList.add('hidden');
         }
 
-        // Zamknij AI Express
         function closeAiExpress() {
             document.getElementById('aiExpressForm').classList.add('hidden');
             document.getElementById('aiTextInput').value = '';
         }
 
-        // Parsuj tekst z AI
         function parseWithAI() {
             const text = document.getElementById('aiTextInput').value;
             
@@ -454,26 +754,25 @@
 
             const textLower = text.toLowerCase();
             
-            // Kategoria
             let category = 'Inne';
-            if (textLower.includes('szkoł') || textLower.includes('lekcj') || textLower.includes('sprawdzian') || textLower.includes('wycieczk')) {
+            if (textLower.includes('teddy') || textLower.includes('eddie')) {
+                category = 'Teddy Eddie';
+            } else if (textLower.includes('programowanie') || textLower.includes('kodowanie') || textLower.includes('laptop')) {
+                category = 'Programowanie';
+            } else if (textLower.includes('szkoł') || textLower.includes('lekcj') || textLower.includes('sprawdzian')) {
                 category = 'Szkoła';
-            } else if (textLower.includes('zuch') || textLower.includes('harcerz')) {
-                category = 'Zuchy';
-            } else if (textLower.includes('sport') || textLower.includes('trening') || textLower.includes('mecz')) {
-                category = 'Sport';
-            } else if (textLower.includes('korepetycj') || textLower.includes('lektor')) {
-                category = 'Korepetycje';
+            } else if (textLower.includes('wycieczk') || textLower.includes('wyjazd') || textLower.includes('wypad')) {
+                category = 'Wycieczki';
+            } else if (textLower.includes('składk') || textLower.includes('wpłat') || textLower.includes('zł')) {
+                category = 'Składki';
             }
 
-            // Priorytet
             let priority = 'normal';
             if (textLower.includes('pilne') || textLower.includes('ważne') || textLower.includes('dziś') || 
                 textLower.includes('jutro') || textLower.includes('koniecznie') || textLower.includes('!!!')) {
                 priority = 'high';
             }
 
-            // Data
             let date = new Date().toISOString().split('T')[0];
             const today = new Date();
             
@@ -511,19 +810,14 @@
                 }
             });
 
-            // Źródło
             let source = '';
             if (textLower.includes('messenger') || textLower.includes('msg')) source = 'Messenger';
             else if (textLower.includes('whatsapp') || textLower.includes('wa')) source = 'WhatsApp';
             else if (textLower.includes('facebook') || textLower.includes('fb')) source = 'Facebook';
-            else if (textLower.includes('librus')) source = 'Librus';
-            else if (textLower.includes('mobidziennik')) source = 'Mobidziennik';
 
-            // Tytuł
             let title = text.split('\n')[0].substring(0, 100);
             if (!title) title = text.substring(0, 50);
 
-            // Wypełnij formularz
             document.getElementById('titleInput').value = title.trim();
             document.getElementById('descriptionInput').value = text;
             document.getElementById('dateInput').value = date;
@@ -535,13 +829,11 @@
             openAddForm();
         }
 
-        // Otwórz formularz dodawania
         function openAddForm() {
             document.getElementById('addForm').classList.remove('hidden');
             document.getElementById('aiExpressForm').classList.add('hidden');
         }
 
-        // Zamknij formularz dodawania
         function closeAddForm() {
             document.getElementById('addForm').classList.add('hidden');
             document.getElementById('titleInput').value = '';
@@ -552,7 +844,6 @@
             document.getElementById('sourceInput').value = '';
         }
 
-        // Dodaj ogłoszenie
         function addAnnouncement() {
             const title = document.getElementById('titleInput').value;
             const description = document.getElementById('descriptionInput').value;
@@ -567,24 +858,22 @@
             }
 
             const announcement = {
-                id: Date.now(),
                 title,
                 description,
                 date,
                 category,
                 priority,
                 source,
-                read: false
+                read: false,
+                createdAt: Date.now()
             };
 
-            announcements.unshift(announcement);
-            saveAnnouncements();
-            renderAnnouncements();
+            if (db && currentRoom) {
+                db.ref('rooms/' + currentRoom + '/announcements').push(announcement);
+            }
+            
             closeAddForm();
         }
-
-        // Uruchom aplikację
-        window.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
