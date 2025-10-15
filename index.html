@@ -61,6 +61,36 @@
         .week-nav::-webkit-scrollbar {
             display: none;
         }
+
+        /* Hania - różowy */
+        .hania-bg {
+            background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+        }
+        .hania-border {
+            border-left: 4px solid #ec4899;
+        }
+        .hania-text {
+            color: #be185d;
+        }
+        .hania-badge {
+            background-color: #fbcfe8;
+            color: #9d174d;
+        }
+
+        /* Teodor - niebieski */
+        .teodor-bg {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+        }
+        .teodor-border {
+            border-left: 4px solid #3b82f6;
+        }
+        .teodor-text {
+            color: #1e40af;
+        }
+        .teodor-badge {
+            background-color: #bfdbfe;
+            color: #1e3a8a;
+        }
     </style>
 </head>
 <body>
@@ -222,6 +252,19 @@
                                 class="w-full pl-11 pr-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             />
                         </div>
+
+                        <!-- Filter by Child -->
+                        <div class="flex gap-2">
+                            <button onclick="filterByChild('Wszystkie')" id="filterAll" class="flex-1 bg-purple-600 text-white font-bold py-3 px-4 rounded-xl transition-colors">
+                                Wszystkie
+                            </button>
+                            <button onclick="filterByChild('Hania')" id="filterHania" class="flex-1 bg-pink-100 text-pink-700 font-bold py-3 px-4 rounded-xl transition-colors">
+                                👧 Hania
+                            </button>
+                            <button onclick="filterByChild('Teodor')" id="filterTeodor" class="flex-1 bg-blue-100 text-blue-700 font-bold py-3 px-4 rounded-xl transition-colors">
+                                👦 Teodor
+                            </button>
+                        </div>
                         
                         <select
                             id="filterCategory"
@@ -231,41 +274,11 @@
                             <option value="Teddy Eddie">🧸 Teddy Eddie</option>
                             <option value="Programowanie">💻 Programowanie</option>
                             <option value="Szkoła">📚 Szkoła</option>
+                            <option value="Przedszkole">🎨 Przedszkole</option>
                             <option value="Wycieczki">🚌 Wycieczki</option>
                             <option value="Składki">💰 Składki</option>
                             <option value="Inne">📌 Inne</option>
                         </select>
-                    </div>
-                </div>
-
-                <!-- AI Express Form -->
-                <div id="aiExpressForm" class="bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl shadow-lg p-5 mb-4 hidden">
-                    <div class="flex items-center gap-2 mb-3">
-                        <span class="text-2xl">⚡</span>
-                        <h2 class="text-xl font-bold text-white">AI Express</h2>
-                    </div>
-                    <p class="text-white text-sm mb-4">Skopiuj wiadomość i wklej tutaj!</p>
-                    
-                    <textarea
-                        id="aiTextInput"
-                        class="w-full px-4 py-3 border-2 border-white rounded-xl focus:ring-2 focus:ring-yellow-300 text-lg mb-3"
-                        rows="4"
-                        placeholder="Przykład: Jutro zajęcia programowania, laptop"
-                    ></textarea>
-                    
-                    <div class="flex gap-3">
-                        <button
-                            onclick="parseWithAI()"
-                            class="flex-1 bg-yellow-400 hover:bg-yellow-500 text-purple-900 font-bold py-3 px-4 rounded-xl transition-colors text-lg"
-                        >
-                            ⚡ Wypełnij automatycznie
-                        </button>
-                        <button
-                            onclick="closeAiExpress()"
-                            class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-bold py-3 px-4 rounded-xl transition-colors"
-                        >
-                            ✕
-                        </button>
                     </div>
                 </div>
 
@@ -274,6 +287,19 @@
                     <h2 class="text-xl font-bold text-gray-800 mb-4">Nowe ogłoszenie</h2>
                     
                     <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Dla kogo? *</label>
+                            <div class="flex gap-3">
+                                <button type="button" onclick="selectChild('Hania')" id="selectHania" class="flex-1 bg-pink-100 text-pink-700 hover:bg-pink-200 font-bold py-3 px-4 rounded-xl transition-colors border-2 border-transparent">
+                                    👧 Hania
+                                </button>
+                                <button type="button" onclick="selectChild('Teodor')" id="selectTeodor" class="flex-1 bg-blue-100 text-blue-700 hover:bg-blue-200 font-bold py-3 px-4 rounded-xl transition-colors border-2 border-transparent">
+                                    👦 Teodor
+                                </button>
+                            </div>
+                            <input type="hidden" id="childInput" value="">
+                        </div>
+
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Tytuł *</label>
                             <input
@@ -312,6 +338,7 @@
                                 <option value="Teddy Eddie">🧸 Teddy Eddie</option>
                                 <option value="Programowanie">💻 Programowanie</option>
                                 <option value="Szkoła">📚 Szkoła</option>
+                                <option value="Przedszkole">🎨 Przedszkole</option>
                                 <option value="Wycieczki">🚌 Wycieczki</option>
                                 <option value="Składki">💰 Składki</option>
                                 <option value="Inne">📌 Inne</option>
@@ -365,22 +392,14 @@
                 </div>
             </div>
 
-            <!-- Floating Action Buttons -->
-            <div class="fixed bottom-6 right-6 flex flex-col gap-3 z-40">
-                <button
-                    onclick="openAiExpress()"
-                    class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold p-4 rounded-full shadow-2xl transition-all active:scale-95"
-                    title="AI Express"
-                >
-                    <span class="text-2xl">⚡</span>
-                </button>
-
+            <!-- Floating Action Button -->
+            <div class="fixed bottom-6 right-6 z-40">
                 <button
                     onclick="openAddForm()"
-                    class="bg-purple-600 hover:bg-purple-700 text-white font-bold p-4 rounded-full shadow-2xl transition-all active:scale-95"
-                    title="Dodaj ręcznie"
+                    class="bg-purple-600 hover:bg-purple-700 text-white font-bold p-5 rounded-full shadow-2xl transition-all active:scale-95"
+                    title="Dodaj ogłoszenie"
                 >
-                    <span class="text-2xl">➕</span>
+                    <span class="text-3xl">➕</span>
                 </button>
             </div>
         </div>
@@ -392,19 +411,17 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
     <script>
-  
-       // 🔥🔥🔥 WKLEJ TUTAJ SWOJĄ KONFIGURACJĘ FIREBASE 🔥🔥🔥
-const firebaseConfig = {
-    apiKey: "AIzaSyBTs9TkU0KwOiAPdhBJs8mQe6fSrClhOuM",
-    authDomain: "tablica-rodzica.firebaseapp.com",
-    databaseURL: "https://tablica-rodzica-default-rtdb.firebaseio.com",
-    projectId: "tablica-rodzica",
-    storageBucket: "tablica-rodzica.firebasestorage.app",
-    messagingSenderId: "616878397001",
-    appId: "1:616878397001:web:d7cbae0cbf403a9bbd1198"
-};
-// 🔥🔥🔥 KONIEC KONFIGURACJI 🔥🔥🔥
-     
+        // 🔥🔥🔥 WKLEJ TUTAJ SWOJĄ KONFIGURACJĘ FIREBASE 🔥🔥🔥
+        const firebaseConfig = {
+            apiKey: "AIzaSyBTs9TkU0KwOiAPdhBJs8mQe6fSrClhOuM",
+            authDomain: "tablica-rodzica.firebaseapp.com",
+            databaseURL: "https://tablica-rodzica-default-rtdb.firebaseio.com",
+            projectId: "tablica-rodzica",
+            storageBucket: "tablica-rodzica.firebasestorage.app",
+            messagingSenderId: "616878397001",
+            appId: "1:616878397001:web:d7cbae0cbf403a9bbd1198"
+        };
+        // 🔥🔥🔥 KONIEC KONFIGURACJI 🔥🔥🔥
 
         let db;
         let auth;
@@ -412,6 +429,7 @@ const firebaseConfig = {
         let currentRoom = null;
         let announcements = [];
         let currentWeekOffset = 0;
+        let currentChildFilter = 'Wszystkie';
 
         // Inicjalizacja Firebase
         firebase.initializeApp(firebaseConfig);
@@ -459,7 +477,6 @@ const firebaseConfig = {
                 });
         }
 
-        // Wylogowanie
         function logout() {
             if (confirm('Czy na pewno chcesz się wylogować?')) {
                 auth.signOut();
@@ -474,7 +491,6 @@ const firebaseConfig = {
             }, 5000);
         }
 
-        // Enter w polu hasła = login
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('loginPassword')?.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') login();
@@ -640,11 +656,44 @@ const firebaseConfig = {
                 'Teddy Eddie': '🧸',
                 'Programowanie': '💻',
                 'Szkoła': '📚',
+                'Przedszkole': '🎨',
                 'Wycieczki': '🚌',
                 'Składki': '💰',
                 'Inne': '📌'
             };
             return emojis[category] || '📌';
+        }
+
+        function filterByChild(child) {
+            currentChildFilter = child;
+            
+            // Update button styles
+            document.getElementById('filterAll').className = child === 'Wszystkie' 
+                ? 'flex-1 bg-purple-600 text-white font-bold py-3 px-4 rounded-xl transition-colors'
+                : 'flex-1 bg-gray-100 text-gray-700 font-bold py-3 px-4 rounded-xl transition-colors';
+            
+            document.getElementById('filterHania').className = child === 'Hania'
+                ? 'flex-1 bg-pink-500 text-white font-bold py-3 px-4 rounded-xl transition-colors'
+                : 'flex-1 bg-pink-100 text-pink-700 font-bold py-3 px-4 rounded-xl transition-colors';
+            
+            document.getElementById('filterTeodor').className = child === 'Teodor'
+                ? 'flex-1 bg-blue-500 text-white font-bold py-3 px-4 rounded-xl transition-colors'
+                : 'flex-1 bg-blue-100 text-blue-700 font-bold py-3 px-4 rounded-xl transition-colors';
+            
+            renderAnnouncements();
+        }
+
+        function selectChild(child) {
+            document.getElementById('childInput').value = child;
+            
+            // Update button styles
+            if (child === 'Hania') {
+                document.getElementById('selectHania').className = 'flex-1 bg-pink-500 text-white font-bold py-3 px-4 rounded-xl transition-colors border-2 border-pink-600';
+                document.getElementById('selectTeodor').className = 'flex-1 bg-blue-100 text-blue-700 hover:bg-blue-200 font-bold py-3 px-4 rounded-xl transition-colors border-2 border-transparent';
+            } else {
+                document.getElementById('selectTeodor').className = 'flex-1 bg-blue-500 text-white font-bold py-3 px-4 rounded-xl transition-colors border-2 border-blue-600';
+                document.getElementById('selectHania').className = 'flex-1 bg-pink-100 text-pink-700 hover:bg-pink-200 font-bold py-3 px-4 rounded-xl transition-colors border-2 border-transparent';
+            }
         }
 
         function renderAnnouncements() {
@@ -655,8 +704,9 @@ const firebaseConfig = {
                 const matchesSearch = a.title.toLowerCase().includes(searchTerm) ||
                                     a.description.toLowerCase().includes(searchTerm);
                 const matchesCategory = filterCategory === 'Wszystkie' || a.category === filterCategory;
+                const matchesChild = currentChildFilter === 'Wszystkie' || a.child === currentChildFilter;
                 const matchesWeek = isInWeek(a.date, currentWeekOffset);
-                return matchesSearch && matchesCategory && matchesWeek;
+                return matchesSearch && matchesCategory && matchesChild && matchesWeek;
             }).sort((a, b) => {
                 if (a.priority === 'high' && b.priority !== 'high') return -1;
                 if (b.priority === 'high' && a.priority !== 'high') return 1;
@@ -668,25 +718,35 @@ const firebaseConfig = {
             if (filtered.length === 0) {
                 list.innerHTML = '<div class="bg-white rounded-xl shadow-lg p-8 text-center"><p class="text-gray-500 text-lg">Brak ogłoszeń w tym tygodniu</p></div>';
             } else {
-                list.innerHTML = filtered.map(a => `
-                    <div class="bg-white rounded-xl shadow-lg p-5 transition-all active:scale-98 ${a.read ? 'opacity-60' : ''} ${a.priority === 'high' ? 'border-l-4 border-red-500' : 'border-l-4 border-purple-300'}">
+                list.innerHTML = filtered.map(a => {
+                    const childClass = a.child === 'Hania' ? 'hania' : 'teodor';
+                    const childBg = a.child === 'Hania' ? 'hania-bg' : 'teodor-bg';
+                    const childBorder = a.child === 'Hania' ? 'hania-border' : 'teodor-border';
+                    const childBadge = a.child === 'Hania' ? 'hania-badge' : 'teodor-badge';
+                    const childIcon = a.child === 'Hania' ? '👧' : '👦';
+                    
+                    return `
+                    <div class="${childBg} rounded-xl shadow-lg p-5 transition-all active:scale-98 ${a.read ? 'opacity-60' : ''} ${a.priority === 'high' ? 'border-l-4 border-red-500' : childBorder}">
                         <div class="flex items-start justify-between gap-3">
                             <div class="flex-1 min-w-0">
                                 <div class="flex flex-wrap items-center gap-2 mb-3">
-                                    <span class="font-bold text-base md:text-lg text-purple-900 whitespace-nowrap">${formatDate(a.date)}</span>
-                                    <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
+                                    <span class="font-bold text-base md:text-lg ${childClass}-text whitespace-nowrap">${formatDate(a.date)}</span>
+                                    <span class="${childBadge} px-3 py-1 rounded-full text-sm font-medium">
+                                        ${childIcon} ${a.child}
+                                    </span>
+                                    <span class="px-3 py-1 bg-white bg-opacity-70 rounded-full text-sm font-medium">
                                         ${getCategoryEmoji(a.category)} ${a.category}
                                     </span>
                                     ${a.priority === 'high' ? '<span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">🔥 PILNE</span>' : ''}
                                 </div>
                                 <h3 class="text-lg md:text-xl font-bold text-gray-800 mb-2 break-words">${a.title}</h3>
-                                <p class="text-gray-600 mb-3 break-words">${a.description}</p>
-                                ${a.source ? `<p class="text-sm text-gray-500 italic">📱 ${a.source}</p>` : ''}
+                                <p class="text-gray-700 mb-3 break-words">${a.description}</p>
+                                ${a.source ? `<p class="text-sm text-gray-600 italic">📱 ${a.source}</p>` : ''}
                             </div>
                             <div class="flex flex-col gap-2 flex-shrink-0">
                                 <button
                                     onclick="toggleRead('${a.id}')"
-                                    class="p-3 rounded-xl transition-colors ${a.read ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'}"
+                                    class="p-3 rounded-xl transition-colors ${a.read ? 'bg-green-100 text-green-600' : 'bg-white bg-opacity-50 text-gray-600'}"
                                 >
                                     <span class="text-xl">${a.read ? '✅' : '⭕'}</span>
                                 </button>
@@ -699,7 +759,7 @@ const firebaseConfig = {
                             </div>
                         </div>
                     </div>
-                `).join('');
+                `}).join('');
             }
 
             updateSummary();
@@ -707,11 +767,12 @@ const firebaseConfig = {
 
         function updateSummary() {
             const thisWeek = announcements.filter(a => isInWeek(a.date, currentWeekOffset));
-            const unread = thisWeek.filter(a => !a.read).length;
+            const filtered = thisWeek.filter(a => currentChildFilter === 'Wszystkie' || a.child === currentChildFilter);
+            const unread = filtered.filter(a => !a.read).length;
             
             document.getElementById('unreadCount').textContent = unread;
             
-            let summaryText = `<span class="font-bold text-purple-600">${thisWeek.length}</span> ogłoszeń w tym tygodniu`;
+            let summaryText = `<span class="font-bold text-purple-600">${filtered.length}</span> ogłoszeń w tym tygodniu`;
             document.getElementById('summary').innerHTML = summaryText;
         }
 
@@ -734,104 +795,12 @@ const firebaseConfig = {
             }
         }
 
-        function openAiExpress() {
-            document.getElementById('aiExpressForm').classList.remove('hidden');
-            document.getElementById('addForm').classList.add('hidden');
-        }
-
-        function closeAiExpress() {
-            document.getElementById('aiExpressForm').classList.add('hidden');
-            document.getElementById('aiTextInput').value = '';
-        }
-
-        function parseWithAI() {
-            const text = document.getElementById('aiTextInput').value;
-            
-            if (!text.trim()) {
-                alert('Wklej tekst wiadomości!');
-                return;
-            }
-
-            const textLower = text.toLowerCase();
-            
-            let category = 'Inne';
-            if (textLower.includes('teddy') || textLower.includes('eddie')) {
-                category = 'Teddy Eddie';
-            } else if (textLower.includes('programowanie') || textLower.includes('kodowanie') || textLower.includes('laptop')) {
-                category = 'Programowanie';
-            } else if (textLower.includes('szkoł') || textLower.includes('lekcj') || textLower.includes('sprawdzian')) {
-                category = 'Szkoła';
-            } else if (textLower.includes('wycieczk') || textLower.includes('wyjazd') || textLower.includes('wypad')) {
-                category = 'Wycieczki';
-            } else if (textLower.includes('składk') || textLower.includes('wpłat') || textLower.includes('zł')) {
-                category = 'Składki';
-            }
-
-            let priority = 'normal';
-            if (textLower.includes('pilne') || textLower.includes('ważne') || textLower.includes('dziś') || 
-                textLower.includes('jutro') || textLower.includes('koniecznie') || textLower.includes('!!!')) {
-                priority = 'high';
-            }
-
-            let date = new Date().toISOString().split('T')[0];
-            const today = new Date();
-            
-            if (textLower.includes('dziś') || textLower.includes('dzisiaj')) {
-                date = today.toISOString().split('T')[0];
-            } else if (textLower.includes('jutro')) {
-                const tomorrow = new Date(today);
-                tomorrow.setDate(tomorrow.getDate() + 1);
-                date = tomorrow.toISOString().split('T')[0];
-            } else if (textLower.includes('pojutrze')) {
-                const dayAfter = new Date(today);
-                dayAfter.setDate(dayAfter.getDate() + 2);
-                date = dayAfter.toISOString().split('T')[0];
-            }
-            
-            const daysMap = {
-                'poniedziałek': 1, 'poniedzialek': 1, 'pon': 1,
-                'wtorek': 2, 'wt': 2,
-                'środa': 3, 'sroda': 3, 'śr': 3, 'sr': 3,
-                'czwartek': 4, 'czw': 4,
-                'piątek': 5, 'piatek': 5, 'pt': 5,
-                'sobota': 6, 'sob': 6, 'sobotę': 6, 'sobote': 6,
-                'niedziela': 7, 'niedz': 7, 'niedzielę': 7, 'niedziele': 7
-            };
-            
-            Object.keys(daysMap).forEach(day => {
-                if (textLower.includes(day)) {
-                    const targetDay = daysMap[day];
-                    const currentDay = today.getDay() || 7;
-                    let daysToAdd = targetDay - currentDay;
-                    if (daysToAdd <= 0) daysToAdd += 7;
-                    const targetDate = new Date(today);
-                    targetDate.setDate(today.getDate() + daysToAdd);
-                    date = targetDate.toISOString().split('T')[0];
-                }
-            });
-
-            let source = '';
-            if (textLower.includes('messenger') || textLower.includes('msg')) source = 'Messenger';
-            else if (textLower.includes('whatsapp') || textLower.includes('wa')) source = 'WhatsApp';
-            else if (textLower.includes('facebook') || textLower.includes('fb')) source = 'Facebook';
-
-            let title = text.split('\n')[0].substring(0, 100);
-            if (!title) title = text.substring(0, 50);
-
-            document.getElementById('titleInput').value = title.trim();
-            document.getElementById('descriptionInput').value = text;
-            document.getElementById('dateInput').value = date;
-            document.getElementById('categoryInput').value = category;
-            document.getElementById('priorityInput').value = priority;
-            document.getElementById('sourceInput').value = source;
-
-            closeAiExpress();
-            openAddForm();
-        }
-
         function openAddForm() {
             document.getElementById('addForm').classList.remove('hidden');
-            document.getElementById('aiExpressForm').classList.add('hidden');
+            // Reset child selection
+            document.getElementById('childInput').value = '';
+            document.getElementById('selectHania').className = 'flex-1 bg-pink-100 text-pink-700 hover:bg-pink-200 font-bold py-3 px-4 rounded-xl transition-colors border-2 border-transparent';
+            document.getElementById('selectTeodor').className = 'flex-1 bg-blue-100 text-blue-700 hover:bg-blue-200 font-bold py-3 px-4 rounded-xl transition-colors border-2 border-transparent';
         }
 
         function closeAddForm() {
@@ -842,9 +811,11 @@ const firebaseConfig = {
             document.getElementById('categoryInput').value = 'Szkoła';
             document.getElementById('priorityInput').value = 'normal';
             document.getElementById('sourceInput').value = '';
+            document.getElementById('childInput').value = '';
         }
 
         function addAnnouncement() {
+            const child = document.getElementById('childInput').value;
             const title = document.getElementById('titleInput').value;
             const description = document.getElementById('descriptionInput').value;
             const date = document.getElementById('dateInput').value;
@@ -852,12 +823,18 @@ const firebaseConfig = {
             const priority = document.getElementById('priorityInput').value;
             const source = document.getElementById('sourceInput').value;
 
+            if (!child) {
+                alert('Wybierz dla kogo jest ogłoszenie!');
+                return;
+            }
+
             if (!title || !date) {
                 alert('Wypełnij tytuł i datę!');
                 return;
             }
 
             const announcement = {
+                child,
                 title,
                 description,
                 date,
