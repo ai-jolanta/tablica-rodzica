@@ -223,14 +223,17 @@
                     
                     <!-- Week Navigation -->
                     <div class="week-nav">
-                        <button onclick="changeWeek(-1)" class="bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded-lg font-bold text-gray-700 whitespace-nowrap">
+                        <button onclick="changeWeek(-1)" class="bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded-lg font-bold text-gray-700 whitespace-nowrap text-sm">
                             ← Poprzedni
                         </button>
-                        <button onclick="changeWeek(0)" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-bold whitespace-nowrap">
+                        <button onclick="changeWeek(0)" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg font-bold whitespace-nowrap text-sm">
                             Ten tydzień
                         </button>
-                        <button onclick="changeWeek(1)" class="bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded-lg font-bold text-gray-700 whitespace-nowrap">
+                        <button onclick="changeWeek(1)" class="bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded-lg font-bold text-gray-700 whitespace-nowrap text-sm">
                             Następny →
+                        </button>
+                        <button onclick="changeWeek('all')" class="bg-green-100 hover:bg-green-200 text-green-700 px-3 py-2 rounded-lg font-bold whitespace-nowrap text-sm">
+                            📅 Wszystkie
                         </button>
                     </div>
                     
@@ -436,7 +439,6 @@
         db = firebase.database();
         auth = firebase.auth();
 
-        // Sprawdź stan logowania
         auth.onAuthStateChanged((user) => {
             if (user) {
                 currentUser = user;
@@ -449,7 +451,6 @@
             }
         });
 
-        // Logowanie
         function login() {
             const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
@@ -467,7 +468,7 @@
                     console.error('Błąd logowania:', error);
                     let message = 'Nieprawidłowy email lub hasło';
                     if (error.code === 'auth/user-not-found') {
-                        message = 'Nie znaleziono użytkownika. Skontaktuj się z administratorem.';
+                        message = 'Nie znaleziono użytkownika.';
                     } else if (error.code === 'auth/wrong-password') {
                         message = 'Nieprawidłowe hasło';
                     } else if (error.code === 'auth/invalid-email') {
@@ -620,19 +621,24 @@
         }
 
         function updateWeekDisplay() {
-            const { start, end } = getWeekRange(currentWeekOffset);
-            const formatDate = (d) => `${d.getDate()}.${d.getMonth() + 1}`;
-            let weekText = `${formatDate(start)} - ${formatDate(end)}`;
-            
-            if (currentWeekOffset === 0) weekText = '📅 Ten tydzień (' + weekText + ')';
-            else if (currentWeekOffset === -1) weekText = '⬅️ Poprzedni tydzień (' + weekText + ')';
-            else if (currentWeekOffset === 1) weekText = '➡️ Następny tydzień (' + weekText + ')';
-            else weekText = '📆 Tydzień ' + weekText;
-            
-            document.getElementById('weekDisplay').textContent = weekText;
+            if (currentWeekOffset === 'all') {
+                document.getElementById('weekDisplay').textContent = '📅 Wszystkie tygodnie';
+            } else {
+                const { start, end } = getWeekRange(currentWeekOffset);
+                const formatDate = (d) => `${d.getDate()}.${d.getMonth() + 1}`;
+                let weekText = `${formatDate(start)} - ${formatDate(end)}`;
+                
+                if (currentWeekOffset === 0) weekText = '📅 Ten tydzień (' + weekText + ')';
+                else if (currentWeekOffset === -1) weekText = '⬅️ Poprzedni tydzień (' + weekText + ')';
+                else if (currentWeekOffset === 1) weekText = '➡️ Następny tydzień (' + weekText + ')';
+                else weekText = '📆 Tydzień ' + weekText;
+                
+                document.getElementById('weekDisplay').textContent = weekText;
+            }
         }
 
         function isInWeek(dateString, weekOffset) {
+            if (weekOffset === 'all') return true;
             const date = new Date(dateString);
             const { start, end } = getWeekRange(weekOffset);
             return date >= start && date <= end;
@@ -667,7 +673,6 @@
         function filterByChild(child) {
             currentChildFilter = child;
             
-            // Update button styles
             document.getElementById('filterAll').className = child === 'Wszystkie' 
                 ? 'flex-1 bg-purple-600 text-white font-bold py-3 px-4 rounded-xl transition-colors'
                 : 'flex-1 bg-gray-100 text-gray-700 font-bold py-3 px-4 rounded-xl transition-colors';
@@ -686,7 +691,6 @@
         function selectChild(child) {
             document.getElementById('childInput').value = child;
             
-            // Update button styles
             if (child === 'Hania') {
                 document.getElementById('selectHania').className = 'flex-1 bg-pink-500 text-white font-bold py-3 px-4 rounded-xl transition-colors border-2 border-pink-600';
                 document.getElementById('selectTeodor').className = 'flex-1 bg-blue-100 text-blue-700 hover:bg-blue-200 font-bold py-3 px-4 rounded-xl transition-colors border-2 border-transparent';
@@ -716,7 +720,7 @@
             const list = document.getElementById('announcementsList');
             
             if (filtered.length === 0) {
-                list.innerHTML = '<div class="bg-white rounded-xl shadow-lg p-8 text-center"><p class="text-gray-500 text-lg">Brak ogłoszeń w tym tygodniu</p></div>';
+                list.innerHTML = '<div class="bg-white rounded-xl shadow-lg p-8 text-center"><p class="text-gray-500 text-lg">Brak ogłoszeń</p></div>';
             } else {
                 list.innerHTML = filtered.map(a => {
                     const childClass = a.child === 'Hania' ? 'hania' : 'teodor';
@@ -766,13 +770,19 @@
         }
 
         function updateSummary() {
-            const thisWeek = announcements.filter(a => isInWeek(a.date, currentWeekOffset));
-            const filtered = thisWeek.filter(a => currentChildFilter === 'Wszystkie' || a.child === currentChildFilter);
+            const filtered = announcements.filter(a => {
+                const matchesChild = currentChildFilter === 'Wszystkie' || a.child === currentChildFilter;
+                const matchesWeek = isInWeek(a.date, currentWeekOffset);
+                return matchesChild && matchesWeek;
+            });
             const unread = filtered.filter(a => !a.read).length;
             
             document.getElementById('unreadCount').textContent = unread;
             
-            let summaryText = `<span class="font-bold text-purple-600">${filtered.length}</span> ogłoszeń w tym tygodniu`;
+            let summaryText = `<span class="font-bold text-purple-600">${filtered.length}</span> ogłoszeń`;
+            if (currentWeekOffset !== 'all') {
+                summaryText += ' w tym okresie';
+            }
             document.getElementById('summary').innerHTML = summaryText;
         }
 
@@ -797,7 +807,6 @@
 
         function openAddForm() {
             document.getElementById('addForm').classList.remove('hidden');
-            // Reset child selection
             document.getElementById('childInput').value = '';
             document.getElementById('selectHania').className = 'flex-1 bg-pink-100 text-pink-700 hover:bg-pink-200 font-bold py-3 px-4 rounded-xl transition-colors border-2 border-transparent';
             document.getElementById('selectTeodor').className = 'flex-1 bg-blue-100 text-blue-700 hover:bg-blue-200 font-bold py-3 px-4 rounded-xl transition-colors border-2 border-transparent';
