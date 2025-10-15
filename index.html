@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#9333ea">
+    <meta name="description" content="Centralna tablica ogłoszeń dla rodziców - wszystko w jednym miejscu">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="TabliCa">
+    
+    <title>TabliCa Rodzica</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .active\:scale-98:active {
+            transform: scale(0.98);
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .install-prompt {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #9333ea 0%, #ec4899 100%);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            z-index: 1000;
+            max-width: 90%;
+            display: none;
+        }
+        
+        .install-prompt.show {
+            display: block;
+            animation: slideUp 0.3s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from {
+                transform: translateX(-50%) translateY(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 pb-24">
+        <!-- Header -->
+        <div class="sticky top-0 z-50 bg-white shadow-lg">
+            <div class="max-w-4xl mx-auto p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-2xl md:text-3xl font-bold text-purple-800">📅 TabliCa</h1>
+                        <p class="text-xs md:text-sm text-gray-600">Wszystko w jednym miejscu</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs text-gray-500">Nieprzeczytane</div>
+                        <div id="unreadCount" class="text-2xl md:text-3xl font-bold text-purple-600">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="max-w-4xl mx-auto p-4">
+            <!-- Search and Filter -->
+            <div class="bg-white rounded-xl shadow-lg p-4 mb-4">
+                <div class="space-y-3">
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">🔍</span>
+                        <input
+                            type="text"
+                            id="searchInput"
+                            placeholder="Szukaj..."
+                            class="w-full pl-11 pr-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+                    </div>
+                    
+                    <select
+                        id="filterCategory"
+                        class="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    >
+                        <option value="Wszystkie">Wszystkie</option>
+                        <option value="Szkoła">Szkoła</option>
+                        <option value="Zuchy">Zuchy</option>
+                        <option value="Sport">Sport</option>
+                        <option value="Korepetycje">Korepetycje</option>
+                        <option value="Inne">Inne</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- AI Express Form -->
+            <div id="aiExpressForm" class="bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl shadow-lg p-5 mb-4 hidden">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="text-2xl">⚡</span>
+                    <h2 class="text-xl font-bold text-white">AI Express</h2>
+                </div>
+                <p class="text-white text-sm mb-4">Skopiuj wiadomość i wklej tutaj - automatycznie wypełnię pola!</p>
+                
+                <textarea
+                    id="aiTextInput"
+                    class="w-full px-4 py-3 border-2 border-white rounded-xl focus:ring-2 focus:ring-yellow-300 text-lg mb-3"
+                    rows="4"
+                    placeholder="Przykład: Jutro wycieczka do muzeum, wpłata 30 zł do piątku - pani Ania z Messengera"
+                ></textarea>
+                
+                <div class="flex gap-3">
+                    <button
+                        onclick="parseWithAI()"
+                        class="flex-1 bg-yellow-400 hover:bg-yellow-500 text-purple-900 font-bold py-3 px-4 rounded-xl transition-colors text-lg"
+                    >
+                        ⚡ Wypełnij automatycznie
+                    </button>
+                    <button
+                        onclick="closeAiExpress()"
+                        class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-bold py-3 px-4 rounded-xl transition-colors"
+                    >
+                        ✕
+                    </button>
+                </div>
+            </div>
+
+            <!-- Add Form -->
+            <div id="addForm" class="bg-white rounded-xl shadow-lg p-5 mb-4 hidden">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Nowe ogłoszenie</h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tytuł *</label>
+                        <input
+                            type="text"
+                            id="titleInput"
+                            class="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
+                            placeholder="np. Wycieczka do zoo"
+                        />
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Opis</label>
+                        <textarea
+                            id="descriptionInput"
+                            class="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
+                            rows="3"
+                            placeholder="Szczegóły..."
+                        ></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Data *</label>
+                        <input
+                            type="date"
+                            id="dateInput"
+                            class="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
+                        />
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Kategoria</label>
+                        <select
+                            id="categoryInput"
+                            class="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
+                        >
+                            <option value="Szkoła">Szkoła</option>
+                            <option value="Zuchy">Zuchy</option>
+                            <option value="Sport">Sport</option>
+                            <option value="Korepetycje">Korepetycje</option>
+                            <option value="Inne">Inne</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Priorytet</label>
+                        <select
+                            id="priorityInput"
+                            class="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
+                        >
+                            <option value="normal">Normalne</option>
+                            <option value="high">🔥 Pilne</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Źródło</label>
+                        <input
+                            type="text"
+                            id="sourceInput"
+                            class="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500"
+                            placeholder="np. Messenger - pani Ania"
+                        />
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button
+                            onclick="addAnnouncement()"
+                            class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-4 rounded-xl transition-colors text-lg"
+                        >
+                            Dodaj
+                        </button>
+                        <button
+                            onclick="closeAddForm()"
+                            class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-4 px-4 rounded-xl transition-colors text-lg"
+                        >
+                            Anuluj
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Announcements List -->
+            <div id="announcementsList" class="space-y-4"></div>
+
+            <!-- Summary -->
+            <div class="mt-6 bg-white rounded-xl shadow-lg p-4">
+                <p id="summary" class="text-center text-gray-600 text-sm md:text-base"></p>
+            </div>
+        </div>
+
+        <!-- Floating Action Buttons -->
+        <div class="fixed bottom-6 right-6 flex flex-col gap-3 z-40">
+            <button
+                onclick="openAiExpress()"
+                class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold p-4 rounded-full shadow-2xl transition-all active:scale-95"
+                title="AI Express"
+            >
+                <span class="text-2xl">⚡</span>
+            </button>
+
+            <button
+                onclick="openAddForm()"
+                class="bg-purple-600 hover:bg-purple-700 text-white font-bold p-4 rounded-full shadow-2xl transition-all active:scale-95"
+                title="Dodaj ręcznie"
+            >
+                <span class="text-2xl">➕</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Stan aplikacji
+        let announcements = [];
+
+        // Inicjalizacja
+        function init() {
+            loadAnnouncements();
+            setDateInputToToday();
+            renderAnnouncements();
+            updateSummary();
+            
+            // Event listeners
+            document.getElementById('searchInput').addEventListener('input', renderAnnouncements);
+            document.getElementById('filterCategory').addEventListener('change', renderAnnouncements);
+        }
+
+        // Załaduj ogłoszenia z localStorage
+        function loadAnnouncements() {
+            const saved = localStorage.getItem('announcements');
+            if (saved) {
+                announcements = JSON.parse(saved);
+            } else {
+                // Przykładowe dane
+                announcements = [
+                    {
+                        id: 1,
+                        title: 'Wycieczka do muzeum',
+                        description: 'Proszę o wpłatę 30 zł do piątku. Dzieci mają mieć drugie śniadanie.',
+                        date: '2025-10-17',
+                        category: 'Szkoła',
+                        priority: 'high',
+                        read: false,
+                        source: 'Wychowawczyni - Messenger'
+                    },
+                    {
+                        id: 2,
+                        title: 'Zbiórka zuchów',
+                        description: 'W sobotę zbiórka o 10:00 w sali gimnastycznej. Mundurki!',
+                        date: '2025-10-18',
+                        category: 'Zuchy',
+                        priority: 'normal',
+                        read: false,
+                        source: 'Grupa FB Zuchy'
+                    }
+                ];
+                saveAnnouncements();
+            }
+        }
+
+        // Zapisz ogłoszenia do localStorage
+        function saveAnnouncements() {
+            localStorage.setItem('announcements', JSON.stringify(announcements));
+        }
+
+        // Ustaw dzisiejszą datę
+        function setDateInputToToday() {
+            document.getElementById('dateInput').value = new Date().toISOString().split('T')[0];
+        }
+
+        // Formatuj datę
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+
+            if (date.toDateString() === today.toDateString()) return '🔴 DZIŚ';
+            if (date.toDateString() === tomorrow.toDateString()) return '🟡 JUTRO';
+            
+            const days = ['Nie', 'Pon', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob'];
+            return `${days[date.getDay()]} ${date.getDate()}.${date.getMonth() + 1}`;
+        }
+
+        // Sprawdź czy data jest w tym tygodniu
+        function isThisWeek(dateString) {
+            const date = new Date(dateString);
+            const today = new Date();
+            const weekFromNow = new Date(today);
+            weekFromNow.setDate(weekFromNow.getDate() + 7);
+            return date >= today && date <= weekFromNow;
+        }
+
+        // Renderuj ogłoszenia
+        function renderAnnouncements() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filterCategory = document.getElementById('filterCategory').value;
+            
+            const filtered = announcements.filter(a => {
+                const matchesSearch = a.title.toLowerCase().includes(searchTerm) ||
+                                    a.description.toLowerCase().includes(searchTerm);
+                const matchesCategory = filterCategory === 'Wszystkie' || a.category === filterCategory;
+                return matchesSearch && matchesCategory;
+            }).sort((a, b) => {
+                if (a.priority === 'high' && b.priority !== 'high') return -1;
+                if (b.priority === 'high' && a.priority !== 'high') return 1;
+                return new Date(a.date) - new Date(b.date);
+            });
+
+            const list = document.getElementById('announcementsList');
+            
+            if (filtered.length === 0) {
+                list.innerHTML = '<div class="bg-white rounded-xl shadow-lg p-8 text-center"><p class="text-gray-500 text-lg">Brak ogłoszeń do wyświetlenia</p></div>';
+            } else {
+                list.innerHTML = filtered.map(a => `
+                    <div class="bg-white rounded-xl shadow-lg p-5 transition-all active:scale-98 ${a.read ? 'opacity-60' : ''} ${a.priority === 'high' ? 'border-l-4 border-red-500' : 'border-l-4 border-purple-300'}">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="flex-1 min-w-0">
+                                <div class="flex flex-wrap items-center gap-2 mb-3">
+                                    <span class="font-bold text-base md:text-lg text-purple-900 whitespace-nowrap">${formatDate(a.date)}</span>
+                                    <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">${a.category}</span>
+                                    ${a.priority === 'high' ? '<span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">🔥 PILNE</span>' : ''}
+                                </div>
+                                <h3 class="text-lg md:text-xl font-bold text-gray-800 mb-2 break-words">${a.title}</h3>
+                                <p class="text-gray-600 mb-3 break-words">${a.description}</p>
+                                ${a.source ? `<p class="text-sm text-gray-500 italic">📱 ${a.source}</p>` : ''}
+                            </div>
+                            <div class="flex flex-col gap-2 flex-shrink-0">
+                                <button
+                                    onclick="toggleRead(${a.id})"
+                                    class="p-3 rounded-xl transition-colors ${a.read ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'}"
+                                >
+                                    <span class="text-xl">${a.read ? '✅' : '⭕'}</span>
+                                </button>
+                                <button
+                                    onclick="deleteAnnouncement(${a.id})"
+                                    class="p-3 rounded-xl bg-red-100 text-red-600 transition-colors"
+                                >
+                                    <span class="text-xl">✕</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            updateSummary();
+        }
+
+        // Aktualizuj podsumowanie
+        function updateSummary() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filterCategory = document.getElementById('filterCategory').value;
+            
+            const filtered = announcements.filter(a => {
+                const matchesSearch = a.title.toLowerCase().includes(searchTerm) ||
+                                    a.description.toLowerCase().includes(searchTerm);
+                const matchesCategory = filterCategory === 'Wszystkie' || a.category === filterCategory;
+                return matchesSearch && matchesCategory;
+            });
+
+            const thisWeek = filtered.filter(a => isThisWeek(a.date));
+            const unread = announcements.filter(a => !a.read && isThisWeek(a.date)).length;
+
+            document.getElementById('unreadCount').textContent = unread;
+            
+            let summaryText = `<span class="font-bold text-purple-600">${filtered.length}</span> ogłoszeń`;
+            if (thisWeek.length > 0) {
+                summaryText += ` | <span class="font-bold text-purple-600">${thisWeek.length}</span> w tym tygodniu`;
+            }
+            document.getElementById('summary').innerHTML = summaryText;
+        }
+
+        // Toggle read status
+        function toggleRead(id) {
+            const announcement = announcements.find(a => a.id === id);
+            if (announcement) {
+                announcement.read = !announcement.read;
+                saveAnnouncements();
+                renderAnnouncements();
+            }
+        }
+
+        // Usuń ogłoszenie
+        function deleteAnnouncement(id) {
+            if (confirm('Usunąć to ogłoszenie?')) {
+                announcements = announcements.filter(a => a.id !== id);
+                saveAnnouncements();
+                renderAnnouncements();
+            }
+        }
+
+        // Otwórz AI Express
+        function openAiExpress() {
+            document.getElementById('aiExpressForm').classList.remove('hidden');
+            document.getElementById('addForm').classList.add('hidden');
+        }
+
+        // Zamknij AI Express
+        function closeAiExpress() {
+            document.getElementById('aiExpressForm').classList.add('hidden');
+            document.getElementById('aiTextInput').value = '';
+        }
+
+        // Parsuj tekst z AI
+        function parseWithAI() {
+            const text = document.getElementById('aiTextInput').value;
+            
+            if (!text.trim()) {
+                alert('Wklej tekst wiadomości!');
+                return;
+            }
+
+            const textLower = text.toLowerCase();
+            
+            // Kategoria
+            let category = 'Inne';
+            if (textLower.includes('szkoł') || textLower.includes('lekcj') || textLower.includes('sprawdzian') || textLower.includes('wycieczk')) {
+                category = 'Szkoła';
+            } else if (textLower.includes('zuch') || textLower.includes('harcerz')) {
+                category = 'Zuchy';
+            } else if (textLower.includes('sport') || textLower.includes('trening') || textLower.includes('mecz')) {
+                category = 'Sport';
+            } else if (textLower.includes('korepetycj') || textLower.includes('lektor')) {
+                category = 'Korepetycje';
+            }
+
+            // Priorytet
+            let priority = 'normal';
+            if (textLower.includes('pilne') || textLower.includes('ważne') || textLower.includes('dziś') || 
+                textLower.includes('jutro') || textLower.includes('koniecznie') || textLower.includes('!!!')) {
+                priority = 'high';
+            }
+
+            // Data
+            let date = new Date().toISOString().split('T')[0];
+            const today = new Date();
+            
+            if (textLower.includes('dziś') || textLower.includes('dzisiaj')) {
+                date = today.toISOString().split('T')[0];
+            } else if (textLower.includes('jutro')) {
+                const tomorrow = new Date(today);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                date = tomorrow.toISOString().split('T')[0];
+            } else if (textLower.includes('pojutrze')) {
+                const dayAfter = new Date(today);
+                dayAfter.setDate(dayAfter.getDate() + 2);
+                date = dayAfter.toISOString().split('T')[0];
+            }
+            
+            const daysMap = {
+                'poniedziałek': 1, 'poniedzialek': 1, 'pon': 1,
+                'wtorek': 2, 'wt': 2,
+                'środa': 3, 'sroda': 3, 'śr': 3, 'sr': 3,
+                'czwartek': 4, 'czw': 4,
+                'piątek': 5, 'piatek': 5, 'pt': 5,
+                'sobota': 6, 'sob': 6, 'sobotę': 6, 'sobote': 6,
+                'niedziela': 7, 'niedz': 7, 'niedzielę': 7, 'niedziele': 7
+            };
+            
+            Object.keys(daysMap).forEach(day => {
+                if (textLower.includes(day)) {
+                    const targetDay = daysMap[day];
+                    const currentDay = today.getDay() || 7;
+                    let daysToAdd = targetDay - currentDay;
+                    if (daysToAdd <= 0) daysToAdd += 7;
+                    const targetDate = new Date(today);
+                    targetDate.setDate(today.getDate() + daysToAdd);
+                    date = targetDate.toISOString().split('T')[0];
+                }
+            });
+
+            // Źródło
+            let source = '';
+            if (textLower.includes('messenger') || textLower.includes('msg')) source = 'Messenger';
+            else if (textLower.includes('whatsapp') || textLower.includes('wa')) source = 'WhatsApp';
+            else if (textLower.includes('facebook') || textLower.includes('fb')) source = 'Facebook';
+            else if (textLower.includes('librus')) source = 'Librus';
+            else if (textLower.includes('mobidziennik')) source = 'Mobidziennik';
+
+            // Tytuł
+            let title = text.split('\n')[0].substring(0, 100);
+            if (!title) title = text.substring(0, 50);
+
+            // Wypełnij formularz
+            document.getElementById('titleInput').value = title.trim();
+            document.getElementById('descriptionInput').value = text;
+            document.getElementById('dateInput').value = date;
+            document.getElementById('categoryInput').value = category;
+            document.getElementById('priorityInput').value = priority;
+            document.getElementById('sourceInput').value = source;
+
+            closeAiExpress();
+            openAddForm();
+        }
+
+        // Otwórz formularz dodawania
+        function openAddForm() {
+            document.getElementById('addForm').classList.remove('hidden');
+            document.getElementById('aiExpressForm').classList.add('hidden');
+        }
+
+        // Zamknij formularz dodawania
+        function closeAddForm() {
+            document.getElementById('addForm').classList.add('hidden');
+            document.getElementById('titleInput').value = '';
+            document.getElementById('descriptionInput').value = '';
+            setDateInputToToday();
+            document.getElementById('categoryInput').value = 'Szkoła';
+            document.getElementById('priorityInput').value = 'normal';
+            document.getElementById('sourceInput').value = '';
+        }
+
+        // Dodaj ogłoszenie
+        function addAnnouncement() {
+            const title = document.getElementById('titleInput').value;
+            const description = document.getElementById('descriptionInput').value;
+            const date = document.getElementById('dateInput').value;
+            const category = document.getElementById('categoryInput').value;
+            const priority = document.getElementById('priorityInput').value;
+            const source = document.getElementById('sourceInput').value;
+
+            if (!title || !date) {
+                alert('Wypełnij tytuł i datę!');
+                return;
+            }
+
+            const announcement = {
+                id: Date.now(),
+                title,
+                description,
+                date,
+                category,
+                priority,
+                source,
+                read: false
+            };
+
+            announcements.unshift(announcement);
+            saveAnnouncements();
+            renderAnnouncements();
+            closeAddForm();
+        }
+
+        // Uruchom aplikację
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
